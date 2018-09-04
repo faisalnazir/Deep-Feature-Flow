@@ -53,8 +53,8 @@ def locate_cuda():
 
     cudaconfig = {'home':home, 'nvcc':nvcc,
                   'include': pjoin(home, 'include'),
-                  'lib64': pjoin(home, 'lib64')}
-    for k, v in cudaconfig.iteritems():
+                  'lib64': pjoin(home, 'lib')}
+    for k, v in list(cudaconfig.items()):
         if not os.path.exists(v):
             raise EnvironmentError('The CUDA %s path could not be located in %s' % (k, v))
 
@@ -118,7 +118,7 @@ ext_modules = [
         "cpu_nms",
         ["cpu_nms.pyx"],
         extra_compile_args={'gcc': ["-Wno-cpp", "-Wno-unused-function"]},
-        include_dirs = [numpy_include]
+        include_dirs = [numpy_include,'.']
     ),
     Extension('gpu_nms',
         ['nms_kernel.cu', 'gpu_nms.pyx'],

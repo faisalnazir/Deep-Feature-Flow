@@ -13,14 +13,14 @@ function. Results are written as the ImageNet VID format. Evaluation is based on
 criterion.
 """
 
-import cPickle
+import pickle
 import cv2
 import os
 import numpy as np
 
-from imdb import IMDB
-from imagenet_vid_eval import vid_eval
-from ds_utils import unique_boxes, filter_small_boxes
+from .imdb import IMDB
+from .imagenet_vid_eval import vid_eval
+from .ds_utils import unique_boxes, filter_small_boxes
 
 
 class ImageNetVID(IMDB):
@@ -57,7 +57,7 @@ class ImageNetVID(IMDB):
         self.num_classes = len(self.classes)
         self.load_image_set_index()
         self.num_images = len(self.image_set_index)
-        print 'num_images', self.num_images
+        print('num_images', self.num_images)
 
     def load_image_set_index(self):
         """
@@ -101,14 +101,14 @@ class ImageNetVID(IMDB):
         cache_file = os.path.join(self.cache_path, self.name + '_gt_roidb.pkl')
         if os.path.exists(cache_file):
             with open(cache_file, 'rb') as fid:
-                roidb = cPickle.load(fid)
-            print '{} gt roidb loaded from {}'.format(self.name, cache_file)
+                roidb = pickle.load(fid)
+            print('{} gt roidb loaded from {}'.format(self.name, cache_file))
             return roidb
 
         gt_roidb = [self.load_vid_annotation(index) for index in range(0, len(self.image_set_index))]
         with open(cache_file, 'wb') as fid:
-            cPickle.dump(gt_roidb, fid, cPickle.HIGHEST_PROTOCOL)
-        print 'wrote gt roidb to {}'.format(cache_file)
+            pickle.dump(gt_roidb, fid, pickle.HIGHEST_PROTOCOL)
+        print('wrote gt roidb to {}'.format(cache_file))
 
         return gt_roidb
 
@@ -149,7 +149,7 @@ class ImageNetVID(IMDB):
         overlaps = np.zeros((num_objs, self.num_classes), dtype=np.float32)
         valid_objs = np.zeros((num_objs), dtype=np.bool)
 
-        class_to_index = dict(zip(self.classes_map, range(self.num_classes)))
+        class_to_index = dict(list(zip(self.classes_map, list(range(self.num_classes)))))
         # Load object bounding boxes into a data frame.
         for ix, obj in enumerate(objs):
             bbox = obj.find('bndbox')
@@ -158,7 +158,7 @@ class ImageNetVID(IMDB):
             y1 = np.maximum(float(bbox.find('ymin').text), 0)
             x2 = np.minimum(float(bbox.find('xmax').text), roi_rec['width']-1)
             y2 = np.minimum(float(bbox.find('ymax').text), roi_rec['height']-1)
-            if not class_to_index.has_key(obj.find('name').text):
+            if obj.find('name').text not in class_to_index:
                 continue
             valid_objs[ix] = True
             cls = class_to_index[obj.find('name').text.lower().strip()]
@@ -226,7 +226,7 @@ class ImageNetVID(IMDB):
         :param all_boxes: boxes to be processed [bbox, confidence]
         :return: None
         """
-        print 'Writing {} ImageNetVID results file'.format('all')
+        print('Writing {} ImageNetVID results file'.format('all'))
         filename = self.get_result_file_template().format('all')
         with open(filename, 'wt') as f:
             for im_ind, index in enumerate(self.image_set_index):
@@ -248,7 +248,7 @@ class ImageNetVID(IMDB):
         :param all_boxes: boxes to be processed [bbox, confidence]
         :return: None
         """
-        print 'Writing {} ImageNetVID results file'.format('all')
+        print('Writing {} ImageNetVID results file'.format('all'))
         filename = self.get_result_file_template().format('all')
         with open(filename, 'wt') as f:
             for detection in detections:
@@ -282,9 +282,9 @@ class ImageNetVID(IMDB):
         for cls_ind, cls in enumerate(self.classes):
             if cls == '__background__':
                 continue
-            print('AP for {} = {:.4f}'.format(cls, ap[cls_ind-1]))
+            print(('AP for {} = {:.4f}'.format(cls, ap[cls_ind-1])))
             info_str += 'AP for {} = {:.4f}\n'.format(cls, ap[cls_ind-1])
-        print('Mean AP@0.5 = {:.4f}'.format(np.mean(ap)))
+        print(('Mean AP@0.5 = {:.4f}'.format(np.mean(ap))))
         info_str += 'Mean AP@0.5 = {:.4f}\n\n'.format(np.mean(ap))
         return info_str
 
@@ -308,8 +308,8 @@ class ImageNetVID(IMDB):
         for cls_ind, cls in enumerate(self.classes):
             if cls == '__background__':
                 continue
-            print('AP for {} = {:.4f}'.format(cls, ap[cls_ind-1]))
+            print(('AP for {} = {:.4f}'.format(cls, ap[cls_ind-1])))
             info_str += 'AP for {} = {:.4f}\n'.format(cls, ap[cls_ind-1])
-        print('Mean AP@0.5 = {:.4f}'.format(np.mean(ap)))
+        print(('Mean AP@0.5 = {:.4f}'.format(np.mean(ap))))
         info_str += 'Mean AP@0.5 = {:.4f}\n\n'.format(np.mean(ap))
         return info_str

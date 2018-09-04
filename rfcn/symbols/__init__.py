@@ -1,1 +1,1 @@
-import resnet_v1_101_rfcn
+from . import resnet_v1_101_rfcn

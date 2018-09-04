@@ -5,7 +5,17 @@
 # Written by Xizhou Zhu, Yi Li, Haochen Zhang
 # --------------------------------------------------------
 
-import _init_paths
+import os.path as osp
+import sys
+
+def add_path(path):
+    if path not in sys.path:
+        sys.path.insert(0, path)
+
+this_dir = osp.dirname(__file__)
+
+lib_path = osp.join(this_dir, '..', 'lib')
+add_path(lib_path)
 
 import argparse
 import os
@@ -82,10 +92,10 @@ def main():
     # get predictor
     data_names = ['data', 'im_info']
     label_names = []
-    data = [[mx.nd.array(data[i][name]) for name in data_names] for i in xrange(len(data))]
+    data = [[mx.nd.array(data[i][name]) for name in data_names] for i in range(len(data))]
     max_data_shape = [[('data', (1, 3, max([v[0] for v in config.SCALES]), max([v[1] for v in config.SCALES])))]]
-    provide_data = [[(k, v.shape) for k, v in zip(data_names, data[i])] for i in xrange(len(data))]
-    provide_label = [None for i in xrange(len(data))]
+    provide_data = [[(k, v.shape) for k, v in zip(data_names, data[i])] for i in range(len(data))]
+    provide_label = [None for i in range(len(data))]
     arg_params, aux_params = load_param(cur_path + model, 0, process=True)
     predictor = Predictor(sym, data_names, label_names,
                           context=[mx.gpu(0)], max_data_shapes=max_data_shape,
@@ -94,11 +104,11 @@ def main():
     nms = gpu_nms_wrapper(config.TEST.NMS, 0)
 
     # warm up
-    for j in xrange(2):
+    for j in range(2):
         data_batch = mx.io.DataBatch(data=[data[0]], label=[], pad=0, index=0,
                                      provide_data=[[(k, v.shape) for k, v in zip(data_names, data[0])]],
                                      provide_label=[None])
-        scales = [data_batch.data[i][1].asnumpy()[0, 2] for i in xrange(len(data_batch.data))]
+        scales = [data_batch.data[i][1].asnumpy()[0, 2] for i in range(len(data_batch.data))]
         scores, boxes, data_dict = im_detect(predictor, data_batch, data_names, scales, config)
 
     # test
@@ -108,13 +118,13 @@ def main():
         data_batch = mx.io.DataBatch(data=[data[idx]], label=[], pad=0, index=idx,
                                      provide_data=[[(k, v.shape) for k, v in zip(data_names, data[idx])]],
                                      provide_label=[None])
-        scales = [data_batch.data[i][1].asnumpy()[0, 2] for i in xrange(len(data_batch.data))]
+        scales = [data_batch.data[i][1].asnumpy()[0, 2] for i in range(len(data_batch.data))]
 
         tic()
         scores, boxes, data_dict = im_detect(predictor, data_batch, data_names, scales, config)
         time += toc()
         count += 1
-        print 'testing {} {:.4f}s'.format(im_name, time/count)
+        print(('testing {} {:.4f}s'.format(im_name, time/count)))
 
         boxes = boxes[0].astype('f')
         scores = scores[0].astype('f')
@@ -136,7 +146,7 @@ def main():
         _, filename = os.path.split(im_name)
         cv2.imwrite(output_dir + filename,out_im)
 
-    print 'done'
+    print('done')
 
 if __name__ == '__main__':
     main()

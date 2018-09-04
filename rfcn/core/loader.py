@@ -18,7 +18,7 @@ from mxnet.executor_manager import _split_input_slice
 from config.config import config
 from utils.image import tensor_vstack
 from rpn.rpn import get_rpn_testbatch, get_rpn_batch, assign_anchor
-from rcnn import get_rcnn_testbatch, get_rcnn_batch
+from .rcnn import get_rcnn_testbatch, get_rcnn_batch
 
 class TestLoader(mx.io.DataIter):
     def __init__(self, roidb, config, batch_size=1, shuffle=False,
@@ -77,7 +77,7 @@ class TestLoader(mx.io.DataIter):
     def iter_next(self):
         return self.cur < self.size
 
-    def next(self):
+    def __next__(self):
         if self.iter_next():
             self.get_batch()
             self.cur += self.batch_size
@@ -171,11 +171,11 @@ class AnchorLoader(mx.io.DataIter):
 
     @property
     def provide_data(self):
-        return [[(k, v.shape) for k, v in zip(self.data_name, self.data[i])] for i in xrange(len(self.data))]
+        return [[(k, v.shape) for k, v in zip(self.data_name, self.data[i])] for i in range(len(self.data))]
 
     @property
     def provide_label(self):
-        return [[(k, v.shape) for k, v in zip(self.label_name, self.label[i])] for i in xrange(len(self.data))]
+        return [[(k, v.shape) for k, v in zip(self.label_name, self.label[i])] for i in range(len(self.data))]
 
     @property
     def provide_data_single(self):
@@ -207,7 +207,7 @@ class AnchorLoader(mx.io.DataIter):
     def iter_next(self):
         return self.cur + self.batch_size <= self.size
 
-    def next(self):
+    def __next__(self):
         if self.iter_next():
             self.get_batch_individual()
             self.cur += self.batch_size
@@ -275,7 +275,7 @@ class AnchorLoader(mx.io.DataIter):
         new_label_list = []
         for data, label in zip(data_list, label_list):
             # infer label shape
-            data_shape = {k: v.shape for k, v in data.items()}
+            data_shape = {k: v.shape for k, v in list(data.items())}
             del data_shape['im_info']
             _, feat_shape, _ = self.feat_sym.infer_shape(**data_shape)
             feat_shape = [int(i) for i in feat_shape[0]]
@@ -326,7 +326,7 @@ class AnchorLoader(mx.io.DataIter):
     def parfetch(self, iroidb):
         # get testing data for multigpu
         data, label = get_rpn_batch(iroidb, self.cfg)
-        data_shape = {k: v.shape for k, v in data.items()}
+        data_shape = {k: v.shape for k, v in list(data.items())}
         del data_shape['im_info']
         _, feat_shape, _ = self.feat_sym.infer_shape(**data_shape)
         feat_shape = [int(i) for i in feat_shape[0]]

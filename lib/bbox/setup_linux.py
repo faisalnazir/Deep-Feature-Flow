@@ -75,7 +75,7 @@ ext_modules = [
         "bbox",
         ["bbox.pyx"],
         extra_compile_args={'gcc': ["-Wno-cpp", "-Wno-unused-function"]},
-        include_dirs=[numpy_include]
+        include_dirs=[numpy_include,'.']
     ),
 ]
 
